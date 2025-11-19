@@ -1,90 +1,101 @@
 package Modelo;
 
 import Utilidad.Estado;
-
 import java.util.Random;
-
 import static Vista.Main.landingController;
 
 public class Plane implements Runnable {
 
-    private int id;
+    private final int id;
     private static int publicId = 1;
+
     private Estado state;
-    private float fuel;
-    private final float maxFuel = 200000;
-    Random rand = new Random();
+    private final float fuel;
 
-    public Estado getState() {
-        return state;
-    }
+    private final Random rand = new Random();
+    private boolean waiting = false;
 
-    public void setState(Estado state) {
-        this.state = state;
+    public boolean isWaiting() {
+        return waiting;
     }
-    public int getId() {
-        return id;
-    }
-
-    public float getFuel() {
-        return fuel;
-    }
-
-    public void setFuel(float fuel) {
-        this.fuel = fuel;
+    public void setWaiting(boolean w) {
+        waiting = w;
     }
 
     public Plane(float fuel) {
-        id=publicId;
+        this.id = publicId;
         publicId++;
-        Random rand = new Random();
-        if(rand.nextBoolean()){
-            state = Estado.EN_EL_AIRE;
+        if(rand.nextBoolean()) {
+            this.state=Estado.EN_EL_AIRE;
         }else{
-            state = Estado.EN_TERMINAL;
+            this.state=Estado.EN_TERMINAL;
         }
-        if(fuel>maxFuel){
-            this.fuel = maxFuel;
-        }else{
-            this.fuel = fuel;
-        }
-
+        this.fuel = fuel;
     }
-    @Override
+
+    public int getId() {
+        return id;
+    }
+    public Estado getState() {
+        return state;
+    }
+    public float getFuel() {
+        return fuel;
+    }
+    public void setState(Estado s) {
+        state = s;
+    }
+
+
     public void run() {
-        Random rand = new Random();
-        while(true){
+        Random r = new Random();
+
+        while (true) {
             try {
+                Thread.sleep(r.nextInt(5000, 10000));
 
-                if (state==Estado.EN_EL_AIRE){
-                    int timeInAir = rand.nextInt(5000,10000);
-                    landingController.planeRequest(Plane.this);
-                    Thread.sleep(timeInAir);
+                int pista = landingController.planeRequest(this);
+
+                if (pista != -1) {
+
+
+                    if (state == Estado.EN_EL_AIRE) {
+                        land();
+                        state = Estado.EN_TERMINAL;
+                    } else {
+                        takeoff();
+                        state = Estado.EN_EL_AIRE;
+                    }
+
+
+                    landingController.releaseLandSite(pista);
+
+
+                    landingController.signalAll();
+
+                    waiting = false;
                 }
-
-                if (state==Estado.EN_TERMINAL){
-                    landingController.planeRequest(Plane.this);
-                    fuel=maxFuel;
-                    Thread.sleep(rand.nextInt(5000,10000));
-                }
-
-
-
 
             } catch (InterruptedException e) {
-                System.err.println(e.getMessage());
+                throw new RuntimeException(e);
             }
         }
     }
 
-    public void takeoff() throws InterruptedException {
-        state =Estado.DESPEGANDO;
-        Thread.sleep(rand.nextInt(1000,3000));
-        state = Estado.EN_EL_AIRE;
+
+
+
+    private void takeoff() throws InterruptedException {
+        setState(Estado.DESPEGANDO);
+        Thread.sleep(rand.nextInt(1200, 3000));
+        setState(Estado.EN_EL_AIRE);
+
     }
-    public void land() throws InterruptedException {
-        state =Estado.ATERRIZANDO;
-        Thread.sleep(rand.nextInt(1000,3000));
-        state = Estado.EN_TERMINAL;
+
+    private void land() throws InterruptedException {
+        setState(Estado.ATERRIZANDO);
+        Thread.sleep(rand.nextInt(1200, 3000));
+        setState(Estado.EN_TERMINAL);
+
     }
 }
