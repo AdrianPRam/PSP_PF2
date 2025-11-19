@@ -12,9 +12,17 @@ public class Main {
         Scanner input = new Scanner(System.in);
         System.out.print("Cuantas pistas quieres? (MIN 2): ");
         int pistas = input.nextInt();
+        while(pistas<2){
+            System.out.print("Numero no valido, Cuantas pistas quieres? (MIN 2): ");
+            pistas = input.nextInt();
+        }
 
         System.out.print("Cuantos aviones quieres? (MIN 10): ");
         int aviones = input.nextInt();
+        while(aviones<10){
+            System.out.print("Numero no valido, Cuantos aviones quieres? (MIN 10): ");
+            aviones = input.nextInt();
+        }
         UpdateController updateController = new UpdateController();
 
         landingController = new LandingController(pistas,aviones);
