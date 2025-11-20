@@ -21,8 +21,9 @@ public class Plane implements Runnable {
     public void setWaiting(boolean w) {
         waiting = w;
     }
-
-    public Plane(float fuel) {
+    private int totalLoops;
+    public int loopsDone = 0;
+    public Plane(float fuel,int totalPlanes) {
         this.id = publicId;
         publicId++;
         if(rand.nextBoolean()) {
@@ -31,6 +32,8 @@ public class Plane implements Runnable {
             this.state=Estado.EN_TERMINAL;
         }
         this.fuel = fuel;
+        this.totalLoops = totalPlanes/2;
+
     }
 
     public int getId() {
@@ -50,7 +53,7 @@ public class Plane implements Runnable {
     public void run() {
         Random r = new Random();
 
-        while (true) {
+        for (int i = 0; i < totalLoops; i++) {
             try {
                 Thread.sleep(r.nextInt(5000, 10000));
 
@@ -74,6 +77,7 @@ public class Plane implements Runnable {
                     landingController.signalAll();
 
                     waiting = false;
+                    loopsDone++;
                 }
 
             } catch (InterruptedException e) {
@@ -83,7 +87,13 @@ public class Plane implements Runnable {
     }
 
 
-
+    public boolean isDone() {
+        if(loopsDone >= totalLoops) {
+            return true;
+        }else {
+            return false;
+        }
+    }
 
     private void takeoff() throws InterruptedException {
         setState(Estado.DESPEGANDO);
@@ -98,4 +108,5 @@ public class Plane implements Runnable {
         setState(Estado.EN_TERMINAL);
 
     }
+
 }

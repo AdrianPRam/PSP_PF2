@@ -18,14 +18,15 @@ public class LandingController {
     private final ArrayList<Lock> landSites = new ArrayList<>();
     private final ArrayList<Plane> planes = new ArrayList<>();
 
+    private int numOperations;
     public LandingController(int landSiteNumber, int planeNumber) {
         Random rand = new Random();
-
+        numOperations = planeNumber*2;
         for (int i = 0; i < landSiteNumber; i++)
             landSites.add(new ReentrantLock());
 
         for (int i = 0; i < planeNumber; i++)
-            planes.add(new Plane(rand.nextFloat(1000, 200000)));
+            planes.add(new Plane(rand.nextFloat(1000, 200000),planeNumber));
 
         for (Plane plane : planes)
             new Thread(plane).start();
@@ -170,5 +171,23 @@ public class LandingController {
             }
         }
         return free;
+    }
+
+    public boolean allDone() {
+        for (Plane p : planes) {
+            if(!p.isDone()){
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public int getNumOperations() {
+        int loopCount = 0;
+        for( Plane p : planes){
+            loopCount+= p.loopsDone;
+        }
+        return loopCount;
     }
 }
